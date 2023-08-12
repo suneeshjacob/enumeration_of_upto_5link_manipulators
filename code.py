@@ -12,46 +12,31 @@ def kutzbach_dof(M):
     return 6*(n-1)-5*(nr+np)-4*nc-3*ns
 
 
-def are_conditions12_met(M, fast=False):
+def are_conditions12_met(M):
     nr = numpy.sum(M==1)
     np = numpy.sum(M==2)
-    nc = numpy.sum(M==3)
-    ns = numpy.sum(M==4)
-    n = len(M)
     
     condition1 = nr+np>=1
 
-    if fast == True:
-        if condition1 == False:
-            return False
-    condition2 = 6*(n-1)-5*(nr+np)-4*nc-3*ns>=1
+    if condition1 == True:
+        condition2 = kutzbach_dof(M)>=1
+        if condition2 == True:
+            return True
+    return False
+
+    # if fast == True:
+    #     if condition1 == False:
+    #         return False
+    # condition2 = kutzbach_dof(M)>=1
     
-    if fast == True:
-        return condition1 and condition2
-    else:
-        return condition1, condition2
+    # if fast == True:
+    #     return condition1 and condition2
+    # else:
+    #     return condition1, condition2
 
 
 
-def superfluous_dof(M):
-    n = len(M)
-    superfluousdof = 0
-    for j2 in get_all_combinations_of_two_parts_of_manipulator(n):
-        part1 = list(j2[0])
-        part2 = list(j2[1])
-        joined_parts = part1 + part2
-        coupling_matrix = change_order(M,joined_parts)[:len(part1),-len(part2):]
-        number_of_joints_in_coupling_matrix = numpy.sum(coupling_matrix != 0)
-        if number_of_joints_in_coupling_matrix == 2:
-            if numpy.sum(coupling_matrix==4) == 2:
-                if len(rows_indices_without_repetition)==1 or len(columns_indices_without_repetition)==1:
-                    if (0 in part1 and n-1 in part2) or (0 in part2 and n-1 in part1):
-                        return [False, None]
-                    else:
-                        superfluousdof += 1
-                else:
-                    return [False, None]
-    return [True, superfluousdof]
+
 
 
 
@@ -266,7 +251,7 @@ from_matrix_to_lst = lambda matrix: sum([matrix[ii,ii+1::].tolist()[0] for ii in
 
 change_order = lambda A,l: graphmatrix_to_oldmatrix(decode_graphmatrix(from_matrix_to_lst(A))[l,:][:,l])
 
-def are_conditions456789_met(M):
+def are_conditions456789_and_10_met(M):
 
     n = len(M)
     
@@ -277,7 +262,23 @@ def are_conditions456789_met(M):
     condition7 = True
     condition8 = True
     condition9 = True
+    condition10 = True
     superfluousdof = 0
+    # for j2 in get_all_combinations_of_two_parts_of_manipulator(n):
+    #     part1 = list(j2[0])
+    #     part2 = list(j2[1])
+    #     joined_parts = part1 + part2
+    #     coupling_matrix = change_order(M,joined_parts)[:len(part1),-len(part2):]
+    #     number_of_joints_in_coupling_matrix = numpy.sum(coupling_matrix != 0)
+    #     if number_of_joints_in_coupling_matrix == 1:
+    #         if (0 in part1 and n-1 in part1) or (0 in part2 and n-1 in part2):
+    #             condition4 = False
+    #             return False
+        
+
+
+
+
     for j2 in get_all_combinations_of_two_parts_of_manipulator(n):
         part1 = list(j2[0])
         part2 = list(j2[1])
@@ -287,10 +288,12 @@ def are_conditions456789_met(M):
         if number_of_joints_in_coupling_matrix == 1:
             if (0 in part1 and n-1 in part1) or (0 in part2 and n-1 in part2):
                 condition4 = False
+                return False, superfluousdof
                 break
             else:
                 if coupling_matrix[coupling_matrix!=0][0,0] in [3,4]:
                     condition5 = False
+                    return False, superfluousdof
                     break
         if number_of_joints_in_coupling_matrix >= 2:
             indices_of_nonzero_elements_of_coupling_matrix = numpy.where(coupling_matrix!=0)
@@ -299,10 +302,12 @@ def are_conditions456789_met(M):
             if len(rows_indices_without_repetition)==1 and len(columns_indices_without_repetition)!=1:
                 if 0 in part1 and n-1 in part1:
                     condition6 = False
+                    return False, superfluousdof
                     break
             elif len(rows_indices_without_repetition)!=1 and len(columns_indices_without_repetition)==1:
                 if 0 in part2 and n-1 in part2:
                     condition6 = False
+                    return False, superfluousdof
                     break
             
             if number_of_joints_in_coupling_matrix == 2:
@@ -310,55 +315,59 @@ def are_conditions456789_met(M):
                     if len(rows_indices_without_repetition)==1 or len(columns_indices_without_repetition)==1:
                         if (0 in part1 and n-1 in part2) or (0 in part2 and n-1 in part1):
                             condition8 = False
+                            return False, superfluousdof
                             break
                         else:
                             superfluousdof += 1
                     else:
                         condition7 = False
+                        return False, superfluousdof
                         break
     
 
-    nr = numpy.sum(M == 1)
-    np = numpy.sum(M == 2)
-    nc = numpy.sum(M == 3)
-    ns = numpy.sum(M == 4)
-    dof = 6*(n-1) - 5*(nr+np) - 4*nc - 3*ns - superfluousdof
-    #if nr+np < dof or dof < 1:
-    if dof < 1:
+
+    dof = kutzbach_dof(M) - superfluousdof
+
+    nr = numpy.sum(M==1)
+    np = numpy.sum(M==2)
+
+    if nr+np < dof:
         condition9 = False
+    elif dof < 1:
+        condition10 = False
 
 
 
 
 
-    return condition4, condition5, condition6, condition7, condition8, condition9, dof
+    return condition4, condition5, condition6, condition7, condition8, condition9, condition10, dof
 
 
 
     
-def are_conditions_10_and_11_met(M, dof_i):
+def are_conditions_11_and_12_met(M, dof_i):
 
-    condition10 = True
     condition11 = True
+    condition12 = True
     for j in all_paths(M):
         indices_list = [sorted([j[j2],j[j2+1]]) for j2 in range(len(j)-1)]
         joints_list = [M[j2[0],j2[1]] for j2 in indices_list]
         total_dof_from_joints_list = joints_list.count(1) + joints_list.count(2) + 2*joints_list.count(3) + 3*joints_list.count(4)
         if total_dof_from_joints_list < dof_i:
-            condition10 = False
+            condition11 = False
             break
     
         if total_dof_from_joints_list == joints_list.count(2):
             if dof_i >= 4:
-                condition11 = False
+                condition12 = False
                 break
         else:
-            if dof_1 >= 7:
-                condition11 = False
+            if dof_i >= 7:
+                condition12 = False
                 break
 
 
-    return condition10, condition11
+    return condition11, condition12
 
 possible_joints = [1,2,3,4]
 possible_placeholders_for_joints = [0] + possible_joints
@@ -371,24 +380,51 @@ matrices = [graphmatrix_to_oldmatrix(decode_graphmatrix(i)) for i in itertools.p
 dof_dictionary = {}
 
 i = 0
+all_possible_matrices_before_elimination = len(matrices)
+number_of_matrices_after_conditions_1_and_2 = 0
+number_of_matrices_after_condition3 = 0
+number_of_matrices_after_conditions_456789_and_10 = 0
+number_of_matrices_after_conditions_11_and_12 = 0
 while i<len(matrices):
     invalid_flag = True
     condition1, condition2 = are_conditions12_met(matrices[i])
     if condition1 and condition2:
+        number_of_matrices_after_conditions_1_and_2 += 1
         condition3 = is_condition3_met(matrices[i])
         if condition3:
-            conditions456789 = are_conditions456789_met(matrices[i])
-            condition4, condition5, condition6, condition7, condition8, condition9, dof = conditions456789
-            if condition4 and condition5 and condition6 and condition7 and condition8 and condition9:
-                condition10, condition11 = are_conditions_10_and_11_met(matrices[i], dof)
-                if condition10 and condition11:
-                    if dof >= 1 and numpy.sum(matrices[i]==1)+numpy.sum(matrices[i]==2)>=dof:
-                        invalid_flag = False
-                        dof_dictionary[''.join(map(str,encode_graphmatrix(matrices[i])))] = dof
-                        i += 1
-    
+            number_of_matrices_after_condition3 += 1
+            conditions456789_and_10 = are_conditions456789_and_10_met(matrices[i])
+            condition4, condition5, condition6, condition7, condition8, condition9, condition10, dof = conditions456789_and_10
+            if condition4 and condition5 and condition6 and condition7 and condition8 and condition9 and condition10:
+                number_of_matrices_after_conditions_456789_and_10 += 1
+                condition11, condition12 = are_conditions_11_and_12_met(matrices[i], dof)
+                if condition11 and condition12:
+                    number_of_matrices_after_conditions_11_and_12 += 1
+                    invalid_flag = False
+                    dof_dictionary[''.join(map(str,encode_graphmatrix(matrices[i])))] = dof
+                    i += 1
+
     if invalid_flag == True:
         matrices.pop(i)
+
+# i = 0
+# while i<len(matrices):
+#     invalid_flag = True
+#     condition1, condition2 = are_conditions12_met(matrices[i])
+#     if condition1 and condition2:
+#         condition3 = is_condition3_met(matrices[i])
+#         if condition3:
+#             conditions456789 = are_conditions456789_met(matrices[i])
+#             condition4, condition5, condition6, condition7, condition8, condition9, condition10, dof = conditions456789
+#             if condition4 and condition5 and condition6 and condition7 and condition8 and condition9 and condition10:
+#                 condition11, condition12 = are_conditions_11_and_12_met(matrices[i], dof)
+#                 if condition11 and condition12:
+#                     invalid_flag = False
+#                     dof_dictionary[''.join(map(str,encode_graphmatrix(matrices[i])))] = dof
+#                     i += 1
+    
+#     if invalid_flag == True:
+#         matrices.pop(i)
 
 
 
