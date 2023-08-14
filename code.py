@@ -264,7 +264,9 @@ from_matrix_to_lst = lambda matrix: sum([matrix[ii,ii+1::].tolist()[0] for ii in
 
 change_order = lambda A,l: graphmatrix_to_oldmatrix(decode_graphmatrix(from_matrix_to_lst(A))[l,:][:,l])
 
-def are_conditions456789_and_10_met(M):
+
+
+def are_conditions45678_met(M):
 
     n = len(M)
     
@@ -274,8 +276,6 @@ def are_conditions456789_and_10_met(M):
     condition6 = True
     condition7 = True
     condition8 = True
-    condition9 = True
-    condition10 = True
     superfluousdof = 0
 
     for j2 in get_all_combinations_of_two_parts_of_manipulator(n):
@@ -327,30 +327,115 @@ def are_conditions456789_and_10_met(M):
 
     dof = kutzbach_dof(M) - superfluousdof
 
-    nr = numpy.sum(M==1)
-    np = numpy.sum(M==2)
-
-    if nr+np < dof:
-        condition9 = False
-        return condition9, None
-    elif dof < 1:
-        condition10 = False
-        return condition10, None
 
 
 
-    final_result = condition4 and condition5 and condition6 and condition7 and condition8 and condition9 and condition10 # It wil always be True.
+    final_result = condition4 and condition5 and condition6 and condition7 and condition8 # It wil always be True.
 
 
     return final_result, dof
 
 
 
-    
-def are_conditions_11_and_12_met(M, dof_i):
+# def are_conditions456789_and_10_met(M):
 
+#     n = len(M)
+    
+
+#     condition4 = True
+#     condition5 = True
+#     condition6 = True
+#     condition7 = True
+#     condition8 = True
+#     condition9 = True
+#     condition10 = True
+#     superfluousdof = 0
+
+#     for j2 in get_all_combinations_of_two_parts_of_manipulator(n):
+#         part1 = list(j2[0])
+#         part2 = list(j2[1])
+#         joined_parts = part1 + part2
+#         coupling_matrix = change_order(M,joined_parts)[:len(part1),-len(part2):]
+#         number_of_joints_in_coupling_matrix = numpy.sum(coupling_matrix != 0)
+#         if number_of_joints_in_coupling_matrix == 1:
+#             if (0 in part1 and n-1 in part1) or (0 in part2 and n-1 in part2):
+#                 condition4 = False
+#                 return condition4, None
+                
+#             else:
+#                 if coupling_matrix[coupling_matrix!=0][0,0] in [3,4]:
+#                     condition5 = False
+#                     return condition5, None
+                    
+#         if number_of_joints_in_coupling_matrix >= 2:
+#             indices_of_nonzero_elements_of_coupling_matrix = numpy.where(coupling_matrix!=0)
+#             rows_indices_without_repetition = list(set(indices_of_nonzero_elements_of_coupling_matrix[0]))
+#             columns_indices_without_repetition = list(set(indices_of_nonzero_elements_of_coupling_matrix[1]))
+#             if len(rows_indices_without_repetition)==1 and len(columns_indices_without_repetition)!=1:
+#                 if 0 in part1 and n-1 in part1:
+#                     condition6 = False
+#                     return condition6, None
+                    
+#             elif len(rows_indices_without_repetition)!=1 and len(columns_indices_without_repetition)==1:
+#                 if 0 in part2 and n-1 in part2:
+#                     condition6 = False
+#                     return condition6, None
+                    
+            
+#             if number_of_joints_in_coupling_matrix == 2:
+#                 if numpy.sum(coupling_matrix==4) == 2:
+#                     if len(rows_indices_without_repetition)==1 or len(columns_indices_without_repetition)==1:
+#                         if (0 in part1 and n-1 in part2) or (0 in part2 and n-1 in part1):
+#                             condition8 = False
+#                             return condition8, None
+                            
+#                         else:
+#                             superfluousdof += 1
+#                     else:
+#                         condition7 = False
+#                         return condition7, None
+                        
+    
+
+
+#     dof = kutzbach_dof(M) - superfluousdof
+
+#     nr = numpy.sum(M==1)
+#     np = numpy.sum(M==2)
+
+#     if nr+np < dof:
+#         condition9 = False
+#         return condition9, None
+#     elif dof < 1:
+#         condition10 = False
+#         return condition10, None
+
+
+
+#     final_result = condition4 and condition5 and condition6 and condition7 and condition8 and condition9 and condition10 # It wil always be True.
+
+
+#     return final_result, dof
+
+
+def are_conditions_9_10_11_and_12_met(M, dof_i):
+
+    condition9 = True
+    condition10 = True
     condition11 = True
     condition12 = True
+
+    nr = numpy.sum(M==1)
+    np = numpy.sum(M==2)
+
+    if nr+np < dof_i:
+        condition9 = False
+        return condition9, None
+    elif dof_i < 1:
+        condition10 = False
+        return condition10, None
+
+
     for j in all_paths(M):
         indices_list = [sorted([j[j2],j[j2+1]]) for j2 in range(len(j)-1)]
         joints_list = [M[j2[0],j2[1]] for j2 in indices_list]
@@ -368,8 +453,33 @@ def are_conditions_11_and_12_met(M, dof_i):
                 condition12 = False
                 return condition12
 
-    final_result = condition11 and condition12 # It wil always be True.
+    final_result = condition9 and condition10 and condition11 and condition12 # It wil always be True.
     return final_result
+
+    
+# def are_conditions_11_and_12_met(M, dof_i):
+
+#     condition11 = True
+#     condition12 = True
+#     for j in all_paths(M):
+#         indices_list = [sorted([j[j2],j[j2+1]]) for j2 in range(len(j)-1)]
+#         joints_list = [M[j2[0],j2[1]] for j2 in indices_list]
+#         total_dof_from_joints_list = joints_list.count(1) + joints_list.count(2) + 2*joints_list.count(3) + 3*joints_list.count(4)
+#         if total_dof_from_joints_list < dof_i:
+#             condition11 = False
+#             return condition11
+    
+#         if total_dof_from_joints_list == joints_list.count(2):
+#             if dof_i >= 4:
+#                 condition12 = False
+#                 return condition12
+#         else:
+#             if dof_i >= 7:
+#                 condition12 = False
+#                 return condition12
+
+#     final_result = condition11 and condition12 # It wil always be True.
+#     return final_result
 
 possible_joints = [1,2,3,4]
 possible_placeholders_for_joints = [0] + possible_joints
