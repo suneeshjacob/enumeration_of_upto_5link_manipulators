@@ -430,10 +430,10 @@ def are_conditions_9_10_11_and_12_met(M, dof_i):
 
     if nr+np < dof_i:
         condition9 = False
-        return condition9, None
+        return condition9
     elif dof_i < 1:
         condition10 = False
-        return condition10, None
+        return condition10
 
 
     for j in all_paths(M):
