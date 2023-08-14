@@ -506,11 +506,11 @@ while i<len(matrices):
         condition_3 = is_condition3_met(matrices[i])
         if condition_3:
             number_of_matrices_after_condition3 += 1
-            conditions456789_and_10, dof = are_conditions456789_and_10_met(matrices[i])
-            if conditions456789_and_10:
+            conditions4567_and_8, dof = are_conditions45678_met(matrices[i])
+            if conditions4567_and_8:
                 number_of_matrices_after_conditions_456789_and_10 += 1
-                conditions_11_and_12 = are_conditions_11_and_12_met(matrices[i], dof)
-                if conditions_11_and_12:
+                conditions_9_10_11_and_12 = are_conditions_9_10_11_and_12_met(matrices[i], dof)
+                if conditions_9_10_11_and_12:
                     number_of_matrices_after_conditions_11_and_12 += 1
                     invalid_flag = False
                     dof_dictionary[''.join(map(str,encode_graphmatrix(matrices[i])))] = dof
